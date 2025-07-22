@@ -20,6 +20,37 @@ venv/
 
 # ---- Secrets -----------------------------------------------------------
 client_secret.json
+client_secrets.json
+credentials/
+*.json
 
 # ---- Logs --------------------------------------------------------------
 mcp_server_debug.log
+logs/
+*.log
+
+# ---- Test files --------------------------------------------------------
+test_*.py
+debug_*.py
+*_test.py
+*_debug.py
+
+# ---- Backup files ------------------------------------------------------
+*.bak
+*.backup
+*.old
+
+# ---- SSL certificates --------------------------------------------------
+*.pem
+*.key
+*.crt
+*.cert
+
+# ---- Database files ----------------------------------------------------
+*.db
+*.sqlite
+*.sqlite3
+
+# ---- Temporary files ---------------------------------------------------
+tmp/
+temp/

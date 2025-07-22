@@ -5,7 +5,7 @@ from importlib import metadata
 
 from fastapi import Header
 from fastapi.responses import HTMLResponse
-
+from fastapi.middleware.cors import CORSMiddleware
 
 from mcp.server.fastmcp import FastMCP
 from starlette.requests import Request
@@ -13,6 +13,7 @@ from starlette.requests import Request
 from auth.google_auth import handle_auth_callback, start_auth_flow, check_client_secrets
 from auth.oauth_callback_server import get_oauth_redirect_uri, ensure_oauth_callback_available
 from auth.oauth_responses import create_error_response, create_success_response, create_server_error_response
+from core.config import config
 
 # Import shared configuration
 from auth.scopes import (
@@ -54,13 +55,22 @@ from auth.scopes import (
     TASKS_SCOPES,  # noqa: F401
 )
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
+# Configure logging using config
+config.setup_logging()
 logger = logging.getLogger(__name__)
 
-WORKSPACE_MCP_PORT = int(os.getenv("PORT", os.getenv("WORKSPACE_MCP_PORT", 8000)))
-WORKSPACE_MCP_BASE_URI = os.getenv("WORKSPACE_MCP_BASE_URI", "http://localhost")
-USER_GOOGLE_EMAIL = os.getenv("USER_GOOGLE_EMAIL", None)
+# Validate configuration
+config_errors = config.validate_config()
+if config_errors:
+    for error in config_errors:
+        logger.error(f"Configuration error: {error}")
+    if config.is_production():
+        raise ValueError(f"Configuration errors in production: {config_errors}")
+
+# Use configuration values
+WORKSPACE_MCP_PORT = config.PORT
+WORKSPACE_MCP_BASE_URI = config.WORKSPACE_MCP_BASE_URI
+USER_GOOGLE_EMAIL = config.USER_GOOGLE_EMAIL
 
 # Transport mode detection (will be set by main.py)
 _current_transport_mode = "stdio"  # Default to stdio
@@ -72,6 +82,11 @@ server = FastMCP(
     port=WORKSPACE_MCP_PORT,
     host="0.0.0.0"
 )
+
+# Configure server for single-user mode if enabled
+if config.MULTI_ACCOUNT_ENABLED and os.getenv("MCP_SINGLE_USER_MODE") == "1":
+    logger.info("Configuring server for single-user mode")
+    # In single-user mode, we'll bypass some session validations
 
 def set_transport_mode(mode: str):
     """Set the current transport mode for OAuth callback handling."""
@@ -92,12 +107,17 @@ async def health_check(request: Request):
         version = metadata.version("workspace-mcp")
     except metadata.PackageNotFoundError:
         version = "dev"
-    return JSONResponse({
+
+    # Include configuration information in health check
+    health_info = {
         "status": "healthy",
         "service": "workspace-mcp",
         "version": version,
-        "transport": _current_transport_mode
-    })
+        "transport": _current_transport_mode,
+        **config.get_server_info()
+    }
+
+    return JSONResponse(health_info)
 
 
 @server.custom_route("/oauth2callback", methods=["GET"])
@@ -197,6 +217,12 @@ async def start_google_auth(
         logger.error(f"[start_google_auth] {error_msg}")
         raise Exception(error_msg)
 
+    # Check if account is allowed (multi-account support)
+    if not config.is_account_allowed(user_google_email):
+        error_msg = f"Account '{user_google_email}' is not allowed to use this service. Please contact the administrator."
+        logger.error(f"[start_google_auth] {error_msg}")
+        raise Exception(error_msg)
+
     logger.info(f"Tool 'start_google_auth' invoked for user_google_email: '{user_google_email}', service: '{service_name}', session: '{mcp_session_id}'.")
 
     # Ensure OAuth callback is available for current transport mode
@@ -211,3 +237,24 @@ async def start_google_auth(
         redirect_uri=redirect_uri
     )
     return auth_result
+
+# Import custom MCP handlers (must be after server definition)
+try:
+    from core import mcp_handlers
+    logger.info("Custom MCP handlers imported successfully")
+except ImportError as e:
+    logger.warning(f"Failed to import custom MCP handlers: {e}")
+
+# Import and setup custom MCP protocol (overrides FastMCP's buggy implementation)
+try:
+    from core.custom_mcp_protocol import handle_mcp_request
+
+    # Override FastMCP's MCP endpoint with our custom implementation
+    @server.custom_route("/mcp", methods=["GET", "POST"])
+    async def custom_mcp_endpoint(request):
+        """Custom MCP endpoint that replaces FastMCP's buggy implementation"""
+        return await handle_mcp_request(request)
+
+    logger.info("Custom MCP protocol endpoint registered - FastMCP's MCP endpoint overridden")
+except ImportError as e:
+    logger.warning(f"Failed to import custom MCP protocol: {e}")

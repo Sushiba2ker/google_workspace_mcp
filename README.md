@@ -11,7 +11,11 @@
 
 **This is the single most feature-complete Google Workspace MCP server** now with 1-click Claude installation
 
-*Full natural language control over Google Calendar, Drive, Gmail, Docs, Sheets, Slides, Forms, Tasks, and Chat through all MCP clients, AI assistants and developer tools.*
+_Full natural language control over Google Calendar, Drive, Gmail, Docs, Sheets, Slides, Forms, Tasks, and Chat through all MCP clients, AI assistants and developer tools._
+
+## 🎉 Version 2.0.0 - Production Ready!
+
+**NEW**: 100% HTTP mode functionality for Claude Web integration, multi-account support, production deployment tools, and comprehensive monitoring.
 
 ###### Support for all free Google accounts (Gmail, Docs, Drive etc) & Google Workspace plans (Starter, Standard, Plus, Enterprise, Non Profit etc) with their expanded app options like Chat & Spaces.
 
@@ -28,8 +32,8 @@
 
 ---
 
-
 **See it in action:**
+
 <div align="center">
   <video width="832" src="https://github.com/user-attachments/assets/a342ebb4-1319-4060-a974-39d202329710"></video>
 </div>
@@ -37,14 +41,16 @@
 ---
 
 ### A quick plug for AI-Enhanced Docs
+
 <details>
 <summary>But why?</summary>
 
 **This README was written with AI assistance, and here's why that matters**
->
+
 > As a solo dev building open source tools that many never see outside use, comprehensive documentation often wouldn't happen without AI help. Using agentic dev tools like **Roo** & **Claude Code** that understand the entire codebase, AI doesn't just regurgitate generic content - it extracts real implementation details and creates accurate, specific documentation.
 >
 > In this case, Sonnet 4 took a pass & a human (me) verified them 7/10/25.
+
 </details>
 
 ## Overview
@@ -78,22 +84,23 @@ A production-ready MCP server that integrates all major Google Workspace service
 3. **Configure:** In Claude Desktop → **Settings → Extensions → Google Workspace MCP**, paste your Google OAuth credentials
 4. **Use it:** Start a new Claude chat and call any Google Workspace tool
 
->
-**Why DXT?**
+> **Why DXT?**
 > Desktop Extensions (`.dxt`) bundle the server, dependencies, and manifest so users go from download → working MCP in **one click** – no terminal, no JSON editing, no version conflicts.
 
 #### Required Configuration
+
 <details>
 <summary>Environment - you will configure these in Claude itself, see screenshot:</summary>
 
-| Variable | Purpose |
-|----------|---------|
-| `GOOGLE_OAUTH_CLIENT_ID` | OAuth client ID from Google Cloud |
-| `GOOGLE_OAUTH_CLIENT_SECRET` | OAuth client secret |
-| `USER_GOOGLE_EMAIL` *(optional)* | Default email for single-user auth |
-| `OAUTHLIB_INSECURE_TRANSPORT=1` | Development only (allows `http://` redirect) |
+| Variable                         | Purpose                                      |
+| -------------------------------- | -------------------------------------------- |
+| `GOOGLE_OAUTH_CLIENT_ID`         | OAuth client ID from Google Cloud            |
+| `GOOGLE_OAUTH_CLIENT_SECRET`     | OAuth client secret                          |
+| `USER_GOOGLE_EMAIL` _(optional)_ | Default email for single-user auth           |
+| `OAUTHLIB_INSECURE_TRANSPORT=1`  | Development only (allows `http://` redirect) |
 
 Claude Desktop stores these securely in the OS keychain; set them once in the extension pane.
+
 </details>
 
 <div align="center">
@@ -131,7 +138,7 @@ uvx workspace-mcp --tools gmail drive calendar tasks
 uvx workspace-mcp --transport streamable-http
 ```
 
-*Requires Python 3.11+ and [uvx](https://github.com/astral-sh/uv). The package is available on [PyPI](https://pypi.org/project/workspace-mcp).*
+_Requires Python 3.11+ and [uvx](https://github.com/astral-sh/uv). The package is available on [PyPI](https://pypi.org/project/workspace-mcp)._
 
 ### Development Installation
 
@@ -152,12 +159,14 @@ uv run main.py
 ### Configuration
 
 1. **Google Cloud Setup**:
+
    - Create OAuth 2.0 credentials (web application) in [Google Cloud Console](https://console.cloud.google.com/)
    - Enable APIs: Calendar, Drive, Gmail, Docs, Sheets, Slides, Forms, Tasks, Chat
    - Add redirect URI: `http://localhost:8000/oauth2callback`
    - Configure credentials using one of these methods:
 
      **Option A: Environment Variables (Recommended for Production)**
+
      ```bash
      export GOOGLE_OAUTH_CLIENT_ID="your-client-id.apps.googleusercontent.com"
      export GOOGLE_OAUTH_CLIENT_SECRET="your-client-secret"
@@ -165,15 +174,18 @@ uv run main.py
      ```
 
      **Option B: File-based (Traditional)**
+
      - Download credentials as `client_secret.json` in project root
      - To use a different location, set `GOOGLE_CLIENT_SECRET_PATH` (or legacy `GOOGLE_CLIENT_SECRETS`) environment variable with the file path
 
    **Credential Loading Priority**:
+
    1. Environment variables (`GOOGLE_OAUTH_CLIENT_ID`, `GOOGLE_OAUTH_CLIENT_SECRET`)
    2. File specified by `GOOGLE_CLIENT_SECRET_PATH` or `GOOGLE_CLIENT_SECRETS` environment variable
    3. Default file (`client_secret.json` in project root)
 
    **Why Environment Variables?**
+
    - ✅ Containerized deployments (Docker, Kubernetes)
    - ✅ Cloud platforms (Heroku, Railway, etc.)
    - ✅ CI/CD pipelines
@@ -181,6 +193,7 @@ uv run main.py
    - ✅ Easy credential rotation
 
 2. **Environment**:
+
    ```bash
    export OAUTHLIB_INSECURE_TRANSPORT=1  # Development only
    export USER_GOOGLE_EMAIL=your.email@gmail.com  # Optional: Default email for auth - use this for single user setups and you won't need to set your email in system prompt for magic auth
@@ -230,6 +243,7 @@ python install_claude.py
 ```
 
 This script automatically:
+
 - Prompts you for your Google OAuth credentials (Client ID and Secret)
 - Creates the Claude Desktop config file in the correct location
 - Sets up all necessary environment variables
@@ -238,6 +252,7 @@ This script automatically:
 After running the script, just restart Claude Desktop and you're ready to go.
 
 **Manual Claude Configuration (Alternative)**
+
 1. Open Claude Desktop Settings → Developer → Edit Config
    1. **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
    2. **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
@@ -259,11 +274,13 @@ After running the script, just restart Claude Desktop and you're ready to go.
    ```
 
 **Get Google OAuth Credentials** (if you don't have them):
+
 - Go to [Google Cloud Console](https://console.cloud.google.com/)
 - Create a new project and enable APIs: Calendar, Drive, Gmail, Docs, Sheets, Slides, Forms, Tasks, Chat
 - Create OAuth 2.0 Client ID (Web application) with redirect URI: `http://localhost:8000/oauth2callback`
 
 **Development Installation (For Contributors)**:
+
 ```json
 {
   "mcpServers": {
@@ -286,6 +303,7 @@ After running the script, just restart Claude Desktop and you're ready to go.
 ```
 
 #### HTTP Mode (For debugging or web interfaces)
+
 If you need to use HTTP mode with Claude Desktop:
 
 ```json
@@ -299,7 +317,7 @@ If you need to use HTTP mode with Claude Desktop:
 }
 ```
 
-*Note: Make sure to start the server with `--transport streamable-http` when using HTTP mode.*
+_Note: Make sure to start the server with `--transport streamable-http` when using HTTP mode._
 
 ### First-Time Authentication
 
@@ -310,6 +328,7 @@ The server features **transport-aware OAuth callback handling**:
 - **Same OAuth Flow**: Both modes use `http://localhost:8000/oauth2callback` for consistency
 
 When calling a tool:
+
 1. Server returns authorization URL
 2. Open URL in browser and authorize
 3. Server handles OAuth callback automatically (on port 8000 in both modes)
@@ -323,109 +342,109 @@ When calling a tool:
 
 ### 📅 Google Calendar ([`calendar_tools.py`](gcalendar/calendar_tools.py))
 
-| Tool | Description |
-|------|-------------|
-| `list_calendars` | List accessible calendars |
-| `get_events` | Retrieve events with time range filtering |
-| `get_event` | Fetch detailed information of a single event by ID |
-| `create_event` | Create events (all-day or timed) with optional Drive file attachments |
-| `modify_event` | Update existing events |
-| `delete_event` | Remove events |
+| Tool             | Description                                                           |
+| ---------------- | --------------------------------------------------------------------- |
+| `list_calendars` | List accessible calendars                                             |
+| `get_events`     | Retrieve events with time range filtering                             |
+| `get_event`      | Fetch detailed information of a single event by ID                    |
+| `create_event`   | Create events (all-day or timed) with optional Drive file attachments |
+| `modify_event`   | Update existing events                                                |
+| `delete_event`   | Remove events                                                         |
 
 ### 📁 Google Drive ([`drive_tools.py`](gdrive/drive_tools.py))
 
-| Tool | Description |
-|------|-------------|
-| `search_drive_files` | Search files with query syntax |
-| `get_drive_file_content` | Read file content (supports Office formats) |
-| `list_drive_items` | List folder contents |
-| `create_drive_file` | Create new files or fetch content from public URLs |
+| Tool                     | Description                                        |
+| ------------------------ | -------------------------------------------------- |
+| `search_drive_files`     | Search files with query syntax                     |
+| `get_drive_file_content` | Read file content (supports Office formats)        |
+| `list_drive_items`       | List folder contents                               |
+| `create_drive_file`      | Create new files or fetch content from public URLs |
 
 ### 📧 Gmail ([`gmail_tools.py`](gmail/gmail_tools.py))
 
-| Tool | Description |
-|------|-------------|
-| `search_gmail_messages` | Search with Gmail operators |
-| `get_gmail_message_content` | Retrieve message content |
-| `send_gmail_message` | Send emails |
-| `draft_gmail_message` | Create drafts |
+| Tool                        | Description                 |
+| --------------------------- | --------------------------- |
+| `search_gmail_messages`     | Search with Gmail operators |
+| `get_gmail_message_content` | Retrieve message content    |
+| `send_gmail_message`        | Send emails                 |
+| `draft_gmail_message`       | Create drafts               |
 
 ### 📝 Google Docs ([`docs_tools.py`](gdocs/docs_tools.py))
 
-| Tool | Description |
-|------|-------------|
-| `search_docs` | Find documents by name |
-| `get_doc_content` | Extract document text |
-| `list_docs_in_folder` | List docs in folder |
-| `create_doc` | Create new documents |
-| `read_doc_comments` | Read all comments and replies |
-| `create_doc_comment` | Create new comments |
-| `reply_to_comment` | Reply to existing comments |
-| `resolve_comment` | Resolve comments |
+| Tool                  | Description                   |
+| --------------------- | ----------------------------- |
+| `search_docs`         | Find documents by name        |
+| `get_doc_content`     | Extract document text         |
+| `list_docs_in_folder` | List docs in folder           |
+| `create_doc`          | Create new documents          |
+| `read_doc_comments`   | Read all comments and replies |
+| `create_doc_comment`  | Create new comments           |
+| `reply_to_comment`    | Reply to existing comments    |
+| `resolve_comment`     | Resolve comments              |
 
 ### 📊 Google Sheets ([`sheets_tools.py`](gsheets/sheets_tools.py))
 
-| Tool | Description |
-|------|-------------|
-| `list_spreadsheets` | List accessible spreadsheets |
-| `get_spreadsheet_info` | Get spreadsheet metadata |
-| `read_sheet_values` | Read cell ranges |
-| `modify_sheet_values` | Write/update/clear cells |
-| `create_spreadsheet` | Create new spreadsheets |
-| `create_sheet` | Add sheets to existing files |
-| `read_sheet_comments` | Read all comments and replies |
-| `create_sheet_comment` | Create new comments |
-| `reply_to_sheet_comment` | Reply to existing comments |
-| `resolve_sheet_comment` | Resolve comments |
+| Tool                     | Description                   |
+| ------------------------ | ----------------------------- |
+| `list_spreadsheets`      | List accessible spreadsheets  |
+| `get_spreadsheet_info`   | Get spreadsheet metadata      |
+| `read_sheet_values`      | Read cell ranges              |
+| `modify_sheet_values`    | Write/update/clear cells      |
+| `create_spreadsheet`     | Create new spreadsheets       |
+| `create_sheet`           | Add sheets to existing files  |
+| `read_sheet_comments`    | Read all comments and replies |
+| `create_sheet_comment`   | Create new comments           |
+| `reply_to_sheet_comment` | Reply to existing comments    |
+| `resolve_sheet_comment`  | Resolve comments              |
 
 ### 🖼️ Google Slides ([`slides_tools.py`](gslides/slides_tools.py))
 
-| Tool | Description |
-|------|-------------|
-| `create_presentation` | Create new presentations |
-| `get_presentation` | Retrieve presentation details |
-| `batch_update_presentation` | Apply multiple updates at once |
-| `get_page` | Get specific slide information |
-| `get_page_thumbnail` | Generate slide thumbnails |
-| `read_presentation_comments` | Read all comments and replies |
-| `create_presentation_comment` | Create new comments |
-| `reply_to_presentation_comment` | Reply to existing comments |
-| `resolve_presentation_comment` | Resolve comments |
+| Tool                            | Description                    |
+| ------------------------------- | ------------------------------ |
+| `create_presentation`           | Create new presentations       |
+| `get_presentation`              | Retrieve presentation details  |
+| `batch_update_presentation`     | Apply multiple updates at once |
+| `get_page`                      | Get specific slide information |
+| `get_page_thumbnail`            | Generate slide thumbnails      |
+| `read_presentation_comments`    | Read all comments and replies  |
+| `create_presentation_comment`   | Create new comments            |
+| `reply_to_presentation_comment` | Reply to existing comments     |
+| `resolve_presentation_comment`  | Resolve comments               |
 
 ### 📝 Google Forms ([`forms_tools.py`](gforms/forms_tools.py))
 
-| Tool | Description |
-|------|-------------|
-| `create_form` | Create new forms with title and description |
-| `get_form` | Retrieve form details, questions, and URLs |
+| Tool                   | Description                                         |
+| ---------------------- | --------------------------------------------------- |
+| `create_form`          | Create new forms with title and description         |
+| `get_form`             | Retrieve form details, questions, and URLs          |
 | `set_publish_settings` | Configure form template and authentication settings |
-| `get_form_response` | Get individual form response details |
-| `list_form_responses` | List all responses to a form with pagination |
+| `get_form_response`    | Get individual form response details                |
+| `list_form_responses`  | List all responses to a form with pagination        |
 
 ### ✓ Google Tasks ([`tasks_tools.py`](gtasks/tasks_tools.py))
 
-| Tool | Description |
-|------|-------------|
-| `list_task_lists` | List all task lists with pagination support |
-| `get_task_list` | Retrieve details of a specific task list |
-| `create_task_list` | Create new task lists with custom titles |
-| `update_task_list` | Modify existing task list titles |
-| `delete_task_list` | Remove task lists and all contained tasks |
-| `list_tasks` | List tasks in a specific list with filtering options |
-| `get_task` | Retrieve detailed information about a specific task |
-| `create_task` | Create new tasks with title, notes, due dates, and hierarchy |
-| `update_task` | Modify task properties including title, notes, status, and due dates |
-| `delete_task` | Remove tasks from task lists |
-| `move_task` | Reposition tasks within lists or move between lists |
-| `clear_completed_tasks` | Hide all completed tasks from a list |
+| Tool                    | Description                                                          |
+| ----------------------- | -------------------------------------------------------------------- |
+| `list_task_lists`       | List all task lists with pagination support                          |
+| `get_task_list`         | Retrieve details of a specific task list                             |
+| `create_task_list`      | Create new task lists with custom titles                             |
+| `update_task_list`      | Modify existing task list titles                                     |
+| `delete_task_list`      | Remove task lists and all contained tasks                            |
+| `list_tasks`            | List tasks in a specific list with filtering options                 |
+| `get_task`              | Retrieve detailed information about a specific task                  |
+| `create_task`           | Create new tasks with title, notes, due dates, and hierarchy         |
+| `update_task`           | Modify task properties including title, notes, status, and due dates |
+| `delete_task`           | Remove tasks from task lists                                         |
+| `move_task`             | Reposition tasks within lists or move between lists                  |
+| `clear_completed_tasks` | Hide all completed tasks from a list                                 |
 
 ### 💬 Google Chat ([`chat_tools.py`](gchat/chat_tools.py))
 
-| Tool | Description |
-|------|-------------|
-| `list_spaces` | List chat spaces/rooms |
-| `get_messages` | Retrieve space messages |
-| `send_message` | Send messages to spaces |
+| Tool              | Description                |
+| ----------------- | -------------------------- |
+| `list_spaces`     | List chat spaces/rooms     |
+| `get_messages`    | Retrieve space messages    |
+| `send_message`    | Send messages to spaces    |
 | `search_messages` | Search across chat history |
 
 ---

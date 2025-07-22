@@ -7,11 +7,10 @@ from importlib import metadata
 # Local imports
 from core.server import server, set_transport_mode
 from core.utils import check_credentials_directory_permissions
+from core.config import config
 
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
+# Setup logging using configuration
+config.setup_logging()
 logger = logging.getLogger(__name__)
 
 try:
@@ -62,9 +61,9 @@ def main():
                         help='Transport mode: stdio (default) or streamable-http')
     args = parser.parse_args()
 
-    # Set port and base URI once for reuse throughout the function
-    port = int(os.getenv("PORT", os.getenv("WORKSPACE_MCP_PORT", 8000)))
-    base_uri = os.getenv("WORKSPACE_MCP_BASE_URI", "http://localhost")
+    # Use configuration values
+    port = config.PORT
+    base_uri = config.WORKSPACE_MCP_BASE_URI
 
     safe_print("🔧 Google Workspace MCP Server")
     safe_print("=" * 35)

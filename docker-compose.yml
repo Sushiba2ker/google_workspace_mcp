@@ -1,0 +1,134 @@
+version: '3.8'
+
+services:
+  google-workspace-mcp:
+    build: .
+    container_name: google-workspace-mcp
+    restart: unless-stopped
+    ports:
+      - "${PORT:-8000}:8000"
+    environment:
+      # Server Configuration
+      - PORT=${PORT:-8000}
+      - WORKSPACE_MCP_PORT=${WORKSPACE_MCP_PORT:-8000}
+      - WORKSPACE_MCP_BASE_URI=${WORKSPACE_MCP_BASE_URI:-http://localhost}
+      - ENVIRONMENT=${ENVIRONMENT:-production}
+      
+      # Google OAuth Configuration
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - USER_GOOGLE_EMAIL=${USER_GOOGLE_EMAIL:-}
+      
+      # Multi-account Configuration
+      - MULTI_ACCOUNT_ENABLED=${MULTI_ACCOUNT_ENABLED:-true}
+      - ALLOWED_GOOGLE_ACCOUNTS=${ALLOWED_GOOGLE_ACCOUNTS:-}
+      - ACCOUNT_CONFIGS=${ACCOUNT_CONFIGS:-{}}
+      
+      # Security Configuration
+      - JWT_SECRET=${JWT_SECRET:-change_this_to_a_secure_random_string_in_production}
+      - SESSION_TIMEOUT_HOURS=${SESSION_TIMEOUT_HOURS:-24}
+      - CORS_ENABLED=${CORS_ENABLED:-true}
+      - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:3000,https://claude.ai}
+      
+      # Logging Configuration
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - FILE_LOGGING_ENABLED=${FILE_LOGGING_ENABLED:-true}
+      - LOG_FILE_PATH=${LOG_FILE_PATH:-logs/mcp_server.log}
+      
+      # SSL/TLS Configuration
+      - SSL_ENABLED=${SSL_ENABLED:-false}
+      - SSL_CERT_PATH=${SSL_CERT_PATH:-}
+      - SSL_KEY_PATH=${SSL_KEY_PATH:-}
+      
+      # Proxy Configuration
+      - BEHIND_PROXY=${BEHIND_PROXY:-false}
+      - PROXY_HEADERS=${PROXY_HEADERS:-true}
+      
+      # Rate Limiting
+      - RATE_LIMIT_ENABLED=${RATE_LIMIT_ENABLED:-true}
+      - RATE_LIMIT_REQUESTS_PER_MINUTE=${RATE_LIMIT_REQUESTS_PER_MINUTE:-60}
+      
+      # Claude Web Integration
+      - MCP_SERVER_URL=${MCP_SERVER_URL:-http://localhost:8000/mcp}
+      - MCP_SERVER_NAME=${MCP_SERVER_NAME:-Google Workspace MCP}
+      - MCP_SERVER_DESCRIPTION=${MCP_SERVER_DESCRIPTION:-Google Workspace integration for Claude}
+      
+      # Tools Configuration
+      - DEFAULT_TOOLS=${DEFAULT_TOOLS:-gmail,drive,calendar,docs,sheets}
+      - GMAIL_MAX_RESULTS=${GMAIL_MAX_RESULTS:-50}
+      - DRIVE_MAX_RESULTS=${DRIVE_MAX_RESULTS:-100}
+      - CALENDAR_MAX_RESULTS=${CALENDAR_MAX_RESULTS:-50}
+      
+      # Database Configuration (optional)
+      - DATABASE_URL=${DATABASE_URL:-}
+      
+      # Monitoring Configuration
+      - HEALTH_CHECK_ENABLED=${HEALTH_CHECK_ENABLED:-true}
+      - METRICS_ENABLED=${METRICS_ENABLED:-false}
+      - PROMETHEUS_ENABLED=${PROMETHEUS_ENABLED:-false}
+      - PROMETHEUS_PORT=${PROMETHEUS_PORT:-9090}
+    
+    volumes:
+      # Mount credentials directory for persistent OAuth tokens
+      - ./credentials:/app/credentials
+      # Mount logs directory
+      - ./logs:/app/logs
+      # Mount SSL certificates if using SSL
+      - ./ssl:/app/ssl:ro
+    
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    
+    networks:
+      - mcp-network
+
+  # Optional: Nginx reverse proxy
+  nginx:
+    image: nginx:alpine
+    container_name: google-workspace-mcp-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - google-workspace-mcp
+    networks:
+      - mcp-network
+    profiles:
+      - nginx
+
+  # Optional: Prometheus monitoring
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: google-workspace-mcp-prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    networks:
+      - mcp-network
+    profiles:
+      - monitoring
+
+networks:
+  mcp-network:
+    driver: bridge
+
+volumes:
+  prometheus_data:
